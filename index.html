@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canal MCI – Sugestões | Mercedes-Benz</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --charcoal: #1a1a1a;
+    --steel: #2a2a2a;
+    --silver: #8a8a8a;
+    --light: #e8e4dc;
+    --accent: #c8a96e;
+    --white: #fafaf8;
+    --green: #4caf50;
+    --red: #e63946;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--black); color:var(--light); min-height:100vh; overflow-x:hidden; }
+
+  /* HEADER */
+  header {
+    background:var(--charcoal); border-bottom:1px solid #333;
+    padding:0 2rem; display:flex; align-items:center; justify-content:space-between;
+    height:68px; position:sticky; top:0; z-index:100;
+  }
+  .logo-area { display:flex; align-items:center; gap:14px; }
+  .mb-logo {
+    width:44px; height:44px; flex-shrink:0;
+  }
+  .logo-text { display:flex; flex-direction:column; }
+  .logo-main { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:4px; color:var(--accent); line-height:1; }
+  .logo-sub { font-size:.65rem; color:var(--silver); letter-spacing:2px; text-transform:uppercase; }
+  .header-right { display:flex; align-items:center; gap:.8rem; }
+
+  /* NOTIFICATION BELL */
+  .notif-bell {
+    position:relative; background:none; border:1px solid #333; border-radius:50%;
+    width:38px; height:38px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    color:var(--silver); font-size:1rem; transition:all .2s;
+  }
+  .notif-bell:hover { border-color:var(--accent); color:var(--accent); }
+  .notif-badge {
+    position:absolute; top:-4px; right:-4px; background:var(--red);
+    color:white; font-size:.6rem; font-weight:700; border-radius:50%;
+    width:16px; height:16px; display:none; align-items:center; justify-content:center;
+  }
+  .notif-badge.show { display:flex; }
+
+  /* NOTIF PANEL */
+  .notif-panel {
+    display:none; position:absolute; top:68px; right:1rem;
+    background:var(--charcoal); border:1px solid #333; border-radius:10px;
+    width:320px; z-index:300; box-shadow: 0 8px 32px rgba(0,0,0,.6);
+    animation: fadeUp .2s ease;
+  }
+  .notif-panel.show { display:block; }
+  .notif-header { padding:.8rem 1rem; border-bottom:1px solid #2a2a2a; display:flex; align-items:center; justify-content:space-between; }
+  .notif-header span { font-size:.75rem; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--silver); }
+  .notif-clear { background:none; border:none; color:var(--silver); font-size:.7rem; cursor:pointer; }
+  .notif-clear:hover { color:var(--accent); }
+  .notif-list { max-height:280px; overflow-y:auto; }
+  .notif-item { padding:.8rem 1rem; border-bottom:1px solid #1f1f1f; }
+  .notif-item:last-child { border-bottom:none; }
+  .notif-item .ni-area { font-family:'DM Mono',monospace; font-size:.65rem; letter-spacing:1px; color:var(--accent); text-transform:uppercase; }
+  .notif-item .ni-text { font-size:.82rem; color:var(--light); margin:.2rem 0; line-height:1.4; }
+  .notif-item .ni-time { font-size:.7rem; color:#555; }
+  .notif-empty { padding:1.5rem; text-align:center; color:var(--silver); font-size:.82rem; }
+
+  nav button {
+    background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif;
+    font-size:.8rem; font-weight:500; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--silver); padding:8px 14px; border-radius:4px; transition:all .2s; display:none;
+  }
+  nav button.visible { display:inline-block; }
+  nav button.active { background:var(--steel); color:var(--accent); }
+  nav button:hover { background:var(--steel); color:var(--light); }
+
+  #coord-btn {
+    background:none; border:1px solid #333; border-radius:4px; cursor:pointer;
+    font-family:'DM Sans',sans-serif; font-size:.75rem; font-weight:500;
+    letter-spacing:1px; text-transform:uppercase; color:var(--silver);
+    padding:6px 14px; transition:all .2s;
+  }
+  #coord-btn:hover { border-color:var(--accent); color:var(--accent); }
+  #coord-btn.active { background:var(--accent); color:var(--black); border-color:var(--accent); }
+
+  .page { display:none; padding:2.5rem 2rem; max-width:960px; margin:0 auto; animation:fadeUp .4s ease; }
+  .page.active { display:block; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
+
+  /* LOGIN */
+  #login-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:200; align-items:center; justify-content:center; }
+  #login-overlay.show { display:flex; }
+  .login-box { background:var(--charcoal); border:1px solid #333; border-radius:14px; padding:2.5rem; width:100%; max-width:360px; text-align:center; }
+  .login-box h2 { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:3px; color:var(--white); margin-bottom:.3rem; }
+  .login-box p { color:var(--silver); font-size:.82rem; margin-bottom:1.8rem; }
+  .login-box input { width:100%; background:var(--steel); border:1px solid #3a3a3a; border-radius:6px; color:var(--light); font-family:'DM Sans',sans-serif; font-size:.95rem; padding:11px 14px; outline:none; transition:border-color .2s; margin-bottom:1rem; text-align:center; letter-spacing:4px; }
+  .login-box input:focus { border-color:var(--accent); }
+  .login-box .btn-login { width:100%; padding:12px; background:var(--accent); color:var(--black); border:none; border-radius:6px; cursor:pointer; font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:3px; transition:all .2s; margin-bottom:.8rem; }
+  .login-box .btn-login:hover { background:#dfc080; }
+  .login-cancel { background:none; border:none; color:var(--silver); font-size:.8rem; cursor:pointer; }
+  .login-error { color:#e06a6a; font-size:.8rem; margin-bottom:.8rem; display:none; }
+
+  /* FORM PAGE */
+  .hero-label { font-family:'DM Mono',monospace; font-size:.7rem; letter-spacing:3px; color:var(--accent); text-transform:uppercase; margin-bottom:.5rem; }
+  h1 { font-family:'Bebas Neue',sans-serif; font-size:clamp(2.5rem,6vw,4.5rem); line-height:.95; letter-spacing:2px; color:var(--white); margin-bottom:1rem; }
+  h1 em { color:var(--accent); font-style:normal; }
+  .hero-sub { font-size:.9rem; color:var(--silver); line-height:1.6; max-width:520px; margin-bottom:1.5rem; }
+
+  /* COUNTER BADGE */
+  .counter-strip {
+    display:flex; align-items:center; gap:1.5rem; background:var(--charcoal);
+    border:1px solid #2f2f2f; border-radius:8px; padding:.8rem 1.2rem;
+    margin-bottom:1.5rem; flex-wrap:wrap;
+  }
+  .counter-item { display:flex; align-items:center; gap:.5rem; }
+  .counter-num { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; color:var(--accent); line-height:1; }
+  .counter-lbl { font-size:.7rem; color:var(--silver); letter-spacing:.5px; }
+  .counter-dot { width:8px; height:8px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+
+  .anon-note { display:flex; align-items:center; gap:.6rem; background:#1a2a1a; border:1px solid #2a4a2a; border-radius:6px; padding:.8rem 1rem; margin-bottom:1.5rem; font-size:.82rem; color:#7fcf7f; }
+  .form-wrapper { background:#111; border-radius:12px; overflow:hidden; border:1px solid #2f2f2f; }
+  .form-wrapper iframe { width:100%; border:none; display:block; min-height:720px; filter:invert(1) hue-rotate(180deg) brightness(0.72) contrast(1.05) saturate(0.85); border-radius:12px; }
+
+  /* DASHBOARD */
+  .dash-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:2rem; flex-wrap:wrap; gap:.8rem; }
+  .dash-title { font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:2px; color:var(--white); }
+  .badge-admin { font-family:'DM Mono',monospace; font-size:.65rem; letter-spacing:2px; background:#c8a96e22; border:1px solid var(--accent); color:var(--accent); padding:4px 10px; border-radius:3px; }
+  .logout-btn { background:none; border:1px solid #333; border-radius:4px; cursor:pointer; color:var(--silver); font-size:.75rem; padding:5px 12px; transition:all .2s; font-family:'DM Sans',sans-serif; margin-top:.4rem; display:block; }
+  .logout-btn:hover { border-color:#e06a6a; color:#e06a6a; }
+
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+  .stat-card { background:var(--charcoal); border:1px solid #2f2f2f; border-radius:10px; padding:1.2rem; }
+  .stat-card .num { font-family:'Bebas Neue',sans-serif; font-size:2.2rem; color:var(--accent); line-height:1; }
+  .stat-card .lbl { font-size:.75rem; color:var(--silver); margin-top:.2rem; letter-spacing:.5px; }
+  .stat-card.live .num { color:var(--green); }
+
+  /* CHARTS */
+  .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+  @media(max-width:600px){ .charts-grid { grid-template-columns:1fr; } }
+  .chart-card { background:var(--charcoal); border:1px solid #2f2f2f; border-radius:10px; padding:1.2rem; }
+  .chart-card h4 { font-family:'DM Mono',monospace; font-size:.65rem; letter-spacing:2px; color:var(--accent); text-transform:uppercase; margin-bottom:1rem; }
+  .bar-chart { display:flex; flex-direction:column; gap:.5rem; }
+  .bar-row { display:flex; align-items:center; gap:.6rem; }
+  .bar-label { font-size:.75rem; color:var(--silver); width:100px; flex-shrink:0; text-align:right; }
+  .bar-track { flex:1; background:#1f1f1f; border-radius:3px; height:18px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:3px; background:var(--accent); transition:width .8s ease; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; }
+  .bar-val { font-size:.7rem; font-weight:600; color:var(--black); }
+
+  .pie-chart { display:flex; flex-wrap:wrap; gap:.5rem; }
+  .pie-item { display:flex; align-items:center; gap:.4rem; }
+  .pie-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .pie-text { font-size:.75rem; color:var(--silver); }
+
+  canvas#donutChart { display:block; margin:0 auto; }
+
+  /* SHEETS LINK */
+  .info-card { background:var(--charcoal); border:1px solid #2f2f2f; border-radius:10px; padding:1.5rem; margin-bottom:1rem; }
+  .info-card h4 { font-family:'DM Mono',monospace; font-size:.7rem; letter-spacing:2px; color:var(--accent); text-transform:uppercase; margin-bottom:1rem; }
+  .btn-open { display:inline-block; margin-top:.8rem; padding:10px 20px; background:var(--accent); color:var(--black); border-radius:6px; font-family:'Bebas Neue',sans-serif; font-size:.95rem; letter-spacing:2px; text-decoration:none; transition:all .2s; }
+  .btn-open:hover { background:#dfc080; }
+
+  /* REPORT */
+  .report-top { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.8rem; margin-bottom:2rem; }
+  .report-title { font-family:'Bebas Neue',sans-serif; font-size:2rem; letter-spacing:3px; }
+  .report-sub { color:var(--silver); font-size:.82rem; margin-top:.2rem; }
+  .report-btn { background:var(--charcoal); border:1px solid var(--accent); color:var(--accent); padding:10px 22px; border-radius:6px; font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:2px; cursor:pointer; transition:all .2s; }
+  .report-btn:hover { background:var(--accent); color:var(--black); }
+  .report-out { background:var(--charcoal); border:1px solid #2f2f2f; border-radius:10px; padding:1.5rem; white-space:pre-wrap; font-family:'DM Mono',monospace; font-size:.78rem; color:var(--silver); line-height:1.8; min-height:200px; }
+  .copy-btn { display:block; margin:1rem auto 0; background:var(--steel); border:1px solid #444; color:var(--light); padding:8px 20px; border-radius:5px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:.8rem; transition:all .2s; }
+  .copy-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+  @media(max-width:600px){ header{padding:0 1rem;} .page{padding:1.5rem 1rem;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <!-- Mercedes-Benz Star SVG — cromado, fundo transparente -->
+    <svg class="mb-logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Gradiente anel externo cromado -->
+        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="#e8e8e8"/>
+          <stop offset="30%"  stop-color="#b0b0b0"/>
+          <stop offset="50%"  stop-color="#f5f5f5"/>
+          <stop offset="70%"  stop-color="#909090"/>
+          <stop offset="100%" stop-color="#d0d0d0"/>
+        </linearGradient>
+        <!-- Gradiente ponta superior (iluminada) -->
+        <linearGradient id="pt" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"  stop-color="#f0f0f0"/>
+          <stop offset="50%" stop-color="#a8a8a8"/>
+          <stop offset="100%" stop-color="#606060"/>
+        </linearGradient>
+        <!-- Gradiente ponta dir -->
+        <linearGradient id="pr" x1="100%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%"  stop-color="#d0d0d0"/>
+          <stop offset="50%" stop-color="#787878"/>
+          <stop offset="100%" stop-color="#505050"/>
+        </linearGradient>
+        <!-- Gradiente ponta esq -->
+        <linearGradient id="pl" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%"  stop-color="#c8c8c8"/>
+          <stop offset="50%" stop-color="#888888"/>
+          <stop offset="100%" stop-color="#d8d8d8"/>
+        </linearGradient>
+        <!-- Gradiente centro -->
+        <radialGradient id="cg" cx="40%" cy="35%">
+          <stop offset="0%"   stop-color="#ffffff"/>
+          <stop offset="40%"  stop-color="#c0c0c0"/>
+          <stop offset="100%" stop-color="#707070"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Anel externo cromado -->
+      <circle cx="100" cy="100" r="97" fill="url(#ringGrad)"/>
+      <!-- Anel interno escuro (recorte) -->
+      <circle cx="100" cy="100" r="82" fill="#1a1a1a"/>
+      <!-- Borda interna sutil -->
+      <circle cx="100" cy="100" r="82" fill="none" stroke="#555" stroke-width="1"/>
+
+      <!-- ESTRELA 3 PONTAS — geometria precisa da Mercedes -->
+      <!-- Ponta de cima (Norte) -->
+      <polygon points="100,20 108,96 92,96" fill="url(#pt)"/>
+      <!-- Sombra lateral ponta cima -->
+      <polygon points="100,20 108,96 100,100" fill="#909090" opacity="0.6"/>
+
+      <!-- Ponta direita (sudeste) -->
+      <polygon points="100,20 108,96 100,100" fill="none"/>
+      <polygon points="167,135 100,100 96,107" fill="url(#pr)"/>
+      <polygon points="167,135 100,100 104,93"  fill="#b0b0b0" opacity="0.5"/>
+
+      <!-- Recalculo correto das 3 pontas: Centro=100,100 ; ponta N=100,18 ; ponta SE=169,137 ; ponta SW=31,137 -->
+      <!-- Limpar e redesenhar corretamente -->
+      <g>
+        <!-- Ponta Norte — face esquerda (sombra) -->
+        <polygon points="100,18  100,100  93,97"  fill="#888"/>
+        <!-- Ponta Norte — face direita (luz) -->
+        <polygon points="100,18  100,100  107,97" fill="#e0e0e0"/>
+
+        <!-- Ponta Sudeste — face esquerda (luz) -->
+        <polygon points="169,137  100,100  98,108" fill="#c8c8c8"/>
+        <!-- Ponta Sudeste — face direita (sombra) -->
+        <polygon points="169,137  100,100  106,95" fill="#686868"/>
+
+        <!-- Ponta Sudoeste — face esquerda (sombra) -->
+        <polygon points="31,137  100,100  94,95"  fill="#505050"/>
+        <!-- Ponta Sudoeste — face direita (luz) -->
+        <polygon points="31,137  100,100  102,108" fill="#d8d8d8"/>
+      </g>
+
+      <!-- Centro da estrela -->
+      <circle cx="100" cy="100" r="8" fill="url(#cg)"/>
+      <circle cx="100" cy="100" r="8" fill="none" stroke="#aaa" stroke-width="0.5"/>
+    </svg>
+    <div class="logo-text">
+      <div class="logo-main">MCI · CANAL</div>
+      <div class="logo-sub">Mercedes-Benz · De Nigris</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <nav id="main-nav">
+      <button id="nav-form" class="visible active" onclick="showPage('form',this)">Sugerir</button>
+      <button id="nav-dash" onclick="showPage('dash',this)">Painel</button>
+      <button id="nav-report" onclick="showPage('report',this)">Relatório</button>
+    </nav>
+    <div style="position:relative;">
+      <button class="notif-bell" onclick="toggleNotifPanel()" id="notif-btn">🔔
+        <div class="notif-badge" id="notif-badge">0</div>
+      </button>
+      <div class="notif-panel" id="notif-panel">
+        <div class="notif-header">
+          <span>Novas Sugestões</span>
+          <button class="notif-clear" onclick="clearNotifs()">Limpar</button>
+        </div>
+        <div class="notif-list" id="notif-list">
+          <div class="notif-empty">Nenhuma notificação ainda.</div>
+        </div>
+      </div>
+    </div>
+    <button id="coord-btn" onclick="handleCoordBtn()">🔐 Coordenador</button>
+  </div>
+</header>
+
+<!-- LOGIN -->
+<div id="login-overlay">
+  <div class="login-box">
+    <h2>ACESSO RESTRITO</h2>
+    <p>Painel do Coordenador de Qualidade<br>Mercedes-Benz · De Nigris</p>
+    <div class="login-error" id="login-error">Senha incorreta. Tente novamente.</div>
+    <input type="password" id="login-input" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-login" onclick="doLogin()">ENTRAR →</button><br>
+    <button class="login-cancel" onclick="closeLogin()">Cancelar</button>
+  </div>
+</div>
+
+<!-- PÁGINA: COLABORADOR -->
+<div class="page active" id="page-form">
+  <div class="hero-label">Mercedes-Benz · Meta Crucialmente Importante</div>
+  <h1>SUA VOZ<br>MOVE O <em>MARKET<br>SHARE</em></h1>
+  <p class="hero-sub">Compartilhe sugestões práticas e objetivas. Toda ideia válida chega direto à Coordenação de Qualidade e impacta nossa MCI.</p>
+
+  <div class="counter-strip" id="counter-strip">
+    <div class="counter-item">
+      <div class="counter-dot"></div>
+      <div>
+        <div class="counter-num" id="counter-total">—</div>
+        <div class="counter-lbl">sugestões recebidas</div>
+      </div>
+    </div>
+    <div class="counter-item">
+      <div>
+        <div class="counter-num" id="counter-areas" style="font-size:1rem;color:var(--silver);">carregando...</div>
+        <div class="counter-lbl">áreas participando</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="anon-note">
+    🔒 <span>Para enviar anonimamente, basta deixar o campo <strong>"Seu nome"</strong> em branco no formulário.</span>
+  </div>
+
+  <div class="form-wrapper">
+    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScFA-GiSgoeHCHfElXtLHWowzE0ccqN_wnQ3ZN2RYIG2HAZ1Q/viewform?embedded=true"
+      frameborder="0" marginheight="0" marginwidth="0" scrolling="auto">Carregando...</iframe>
+  </div>
+</div>
+
+<!-- PÁGINA: PAINEL -->
+<div class="page" id="page-dash">
+  <div class="dash-top">
+    <div>
+      <div class="dash-title">PAINEL DO COORDENADOR</div>
+      <div class="badge-admin" style="margin:.4rem 0 .6rem;">JEFFERSON ALVES · QUALIDADE</div>
+      <button class="logout-btn" onclick="logout()">↩ Sair</button>
+    </div>
+    <button onclick="loadDashData()" style="background:var(--steel);border:1px solid #444;color:var(--light);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:.8rem;font-family:'DM Sans',sans-serif;">🔄 Atualizar</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card live"><div class="num" id="d-total">—</div><div class="lbl">Total recebidas</div></div>
+    <div class="stat-card"><div class="num" id="d-hoje">—</div><div class="lbl">Hoje</div></div>
+    <div class="stat-card"><div class="num" id="d-anon">—</div><div class="lbl">Anônimas</div></div>
+    <div class="stat-card"><div class="num" id="d-areas">—</div><div class="lbl">Áreas ativas</div></div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h4>📊 Sugestões por Área</h4>
+      <div class="bar-chart" id="bar-chart">
+        <div style="color:var(--silver);font-size:.8rem;">Carregando dados...</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h4>🥧 Anônimas vs Identificadas</h4>
+      <canvas id="donutChart" width="180" height="180"></canvas>
+      <div class="pie-chart" id="pie-legend" style="margin-top:.8rem;justify-content:center;"></div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h4>📊 Banco de Dados — Google Sheets</h4>
+    <p style="font-size:.85rem;color:var(--silver);line-height:1.6;">Todas as sugestões são salvas automaticamente. Clique para abrir a planilha completa.</p>
+    <a class="btn-open" href="https://docs.google.com/spreadsheets/d/1ZrupQNMsZopYZJvaFUcSOLKyB2Mvwlckx7Y9SC0WiiU/edit" target="_blank">ABRIR PLANILHA →</a>
+  </div>
+</div>
+
+<!-- PÁGINA: RELATÓRIO -->
+<div class="page" id="page-report">
+  <div class="report-top">
+    <div>
+      <div class="report-title">RELATÓRIO DIRETORIA</div>
+      <div class="report-sub">Resumo executivo para o Diretor Afabio Freitas</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.5rem;">
+      <button class="report-btn" onclick="generateReport()">⚡ GERAR RELATÓRIO COM IA</button>
+      <button class="logout-btn" onclick="logout()">↩ Sair</button>
+    </div>
+  </div>
+
+  <!-- Charts (same as coordinator panel) -->
+  <div id="report-charts-section" style="display:none;">
+    <div class="charts-grid" style="margin-bottom:1.5rem;">
+      <div class="chart-card">
+        <h4>📊 Sugestões por Área</h4>
+        <div class="bar-chart" id="report-bar-chart"></div>
+      </div>
+      <div class="chart-card">
+        <h4>🥧 Anônimas vs Identificadas</h4>
+        <canvas id="reportDonutChart" width="180" height="180"></canvas>
+        <div class="pie-chart" id="report-pie-legend" style="margin-top:.8rem;justify-content:center;"></div>
+      </div>
+    </div>
+    <div style="background:var(--charcoal);border:1px solid #2f2f2f;border-radius:10px;padding:1rem;margin-bottom:1.5rem;display:flex;gap:2rem;flex-wrap:wrap;">
+      <div class="stat-card" style="flex:1;min-width:120px;background:transparent;border:none;padding:.5rem;">
+        <div class="num" id="r-total" style="color:var(--green);">—</div><div class="lbl">Total recebidas</div>
+      </div>
+      <div class="stat-card" style="flex:1;min-width:120px;background:transparent;border:none;padding:.5rem;">
+        <div class="num" id="r-hoje">—</div><div class="lbl">Hoje</div>
+      </div>
+      <div class="stat-card" style="flex:1;min-width:120px;background:transparent;border:none;padding:.5rem;">
+        <div class="num" id="r-anon">—</div><div class="lbl">Anônimas</div>
+      </div>
+      <div class="stat-card" style="flex:1;min-width:120px;background:transparent;border:none;padding:.5rem;">
+        <div class="num" id="r-areas">—</div><div class="lbl">Áreas ativas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Analysis label -->
+  <div id="report-ai-label" style="display:none;font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:.6rem;">🤖 Análise por Inteligência Artificial</div>
+
+  <div class="report-out" id="report-out">Clique em "Gerar Relatório com IA" para criar o resumo executivo completo com dados reais e análise inteligente...</div>
+  <button class="copy-btn" onclick="copyReport()">📋 Copiar para WhatsApp / Email</button>
+</div>
+
+<script>
+  const SENHA = 'mci2025';
+  const SHEETS_API = 'https://script.google.com/macros/s/AKfycbxzJBn0U07xqsLXHXbkXSh8Yec6ZVLJHCyhcLzxMWdOndpu1LDpkgJPqvdE7w8QdspMog/exec';
+  let isCoord = false;
+  let lastTotal = null;
+  let notifications = [];
+
+  // ── FETCH DATA ──
+  async function fetchData() {
+    try {
+      const res = await fetch(SHEETS_API);
+      return await res.json();
+    } catch(e) { return null; }
+  }
+
+  // ── COUNTER (form page, auto-refresh every 30s) ──
+  async function loadCounter() {
+    const data = await fetchData();
+    if(!data) return;
+    const total = data.total || 0;
+    const sugestoes = data.sugestoes || [];
+    const areas = new Set(sugestoes.map(s=>s.area)).size;
+
+    document.getElementById('counter-total').textContent = total;
+    document.getElementById('counter-areas').textContent = areas + ' áreas';
+
+    // Check for new suggestions and notify
+    if(lastTotal !== null && total > lastTotal) {
+      const newCount = total - lastTotal;
+      const newest = sugestoes.slice(0, newCount);
+      newest.forEach(s => addNotification(s));
+    }
+    lastTotal = total;
+  }
+
+  // ── NOTIFICATIONS ──
+  function addNotification(s) {
+    notifications.unshift({
+      area: s.area || 'Geral',
+      text: s.sugestao ? s.sugestao.slice(0,80)+'...' : 'Nova sugestão recebida',
+      time: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'})
+    });
+    renderNotifications();
+    // Show badge
+    document.getElementById('notif-badge').textContent = notifications.length;
+    document.getElementById('notif-badge').classList.add('show');
+    // Flash bell
+    document.getElementById('notif-btn').style.borderColor = 'var(--accent)';
+    document.getElementById('notif-btn').style.color = 'var(--accent)';
+  }
+
+  function renderNotifications() {
+    const list = document.getElementById('notif-list');
+    if(notifications.length === 0) {
+      list.innerHTML = '<div class="notif-empty">Nenhuma notificação ainda.</div>';
+      return;
+    }
+    list.innerHTML = notifications.map(n => `
+      <div class="notif-item">
+        <div class="ni-area">${n.area}</div>
+        <div class="ni-text">${n.text}</div>
+        <div class="ni-time">${n.time}</div>
+      </div>`).join('');
+  }
+
+  function toggleNotifPanel() {
+    document.getElementById('notif-panel').classList.toggle('show');
+    // Clear badge when opened
+    document.getElementById('notif-badge').classList.remove('show');
+  }
+
+  function clearNotifs() {
+    notifications = [];
+    renderNotifications();
+    document.getElementById('notif-badge').classList.remove('show');
+    document.getElementById('notif-panel').classList.remove('show');
+  }
+
+  // Close panel when clicking outside
+  document.addEventListener('click', e => {
+    const panel = document.getElementById('notif-panel');
+    const btn = document.getElementById('notif-btn');
+    if(!panel.contains(e.target) && !btn.contains(e.target)) {
+      panel.classList.remove('show');
+    }
+  });
+
+  // ── DASHBOARD DATA ──
+  async function loadDashData() {
+    const data = await fetchData();
+    if(!data) { return; }
+    const sugestoes = data.sugestoes || [];
+    const total = data.total || 0;
+
+    document.getElementById('d-total').textContent = total;
+
+    // Today count
+    const today = new Date().toLocaleDateString('pt-BR');
+    const hojeCount = sugestoes.filter(s => {
+      try { return new Date(s.data).toLocaleDateString('pt-BR') === today; } catch(e) { return false; }
+    }).length;
+    document.getElementById('d-hoje').textContent = hojeCount;
+
+    // Anonymous
+    const anonCount = sugestoes.filter(s => !s.nome || s.nome.trim() === '' || s.nome === 'Anônimo').length;
+    document.getElementById('d-anon').textContent = anonCount;
+
+    // Areas
+    const areas = {};
+    sugestoes.forEach(s => { if(s.area) areas[s.area] = (areas[s.area]||0)+1; });
+    document.getElementById('d-areas').textContent = Object.keys(areas).length;
+
+    // Bar chart
+    const maxVal = Math.max(...Object.values(areas), 1);
+    const colors = ['#c8a96e','#e0b87a','#d4af70','#b89550','#a07840','#8a6030','#6a4820'];
+    document.getElementById('bar-chart').innerHTML = Object.entries(areas)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([area, count], i) => `
+        <div class="bar-row">
+          <div class="bar-label">${area}</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${Math.round(count/maxVal*100)}%;background:${colors[i%colors.length]}">
+              <span class="bar-val">${count}</span>
+            </div>
+          </div>
+        </div>`).join('') || '<div style="color:var(--silver);font-size:.8rem;">Nenhum dado ainda.</div>';
+
+    // Donut chart
+    drawDonut(anonCount, total - anonCount);
+  }
+
+  function drawDonut(anon, identified) {
+    const canvas = document.getElementById('donutChart');
+    const ctx = canvas.getContext('2d');
+    const total = anon + identified;
+    ctx.clearRect(0,0,180,180);
+    if(total === 0) {
+      ctx.fillStyle = '#2a2a2a';
+      ctx.beginPath(); ctx.arc(90,90,70,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#1a1a1a';
+      ctx.beginPath(); ctx.arc(90,90,45,0,Math.PI*2); ctx.fill();
+      return;
+    }
+    const data = [
+      { val: anon, color: '#c8a96e', label: 'Anônimas' },
+      { val: identified, color: '#4a7a9b', label: 'Identificadas' }
+    ];
+    let startAngle = -Math.PI/2;
+    data.forEach(d => {
+      const slice = (d.val/total) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(90,90);
+      ctx.arc(90,90,70,startAngle,startAngle+slice);
+      ctx.closePath();
+      ctx.fillStyle = d.color;
+      ctx.fill();
+      startAngle += slice;
+    });
+    ctx.beginPath(); ctx.arc(90,90,45,0,Math.PI*2);
+    ctx.fillStyle = '#1a1a1a'; ctx.fill();
+    ctx.fillStyle = 'var(--light)';
+    ctx.font = 'bold 22px Bebas Neue, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(total, 90, 85);
+    ctx.font = '10px DM Sans, sans-serif';
+    ctx.fillStyle = '#8a8a8a';
+    ctx.fillText('total', 90, 102);
+
+    document.getElementById('pie-legend').innerHTML = data.map(d =>
+      `<div class="pie-item"><div class="pie-dot" style="background:${d.color}"></div><div class="pie-text">${d.label}: ${d.val}</div></div>`
+    ).join('');
+  }
+
+  // ── REPORT WITH AI ──
+  async function generateReport() {
+    const btn = document.querySelector('.report-btn');
+    const out = document.getElementById('report-out');
+    const chartsSection = document.getElementById('report-charts-section');
+    const aiLabel = document.getElementById('report-ai-label');
+
+    btn.textContent = '⏳ Buscando dados...'; btn.disabled = true;
+    out.textContent = 'Conectando ao Google Sheets...';
+    chartsSection.style.display = 'none';
+    aiLabel.style.display = 'none';
+
+    try {
+      const res = await fetch(SHEETS_API);
+      const json = await res.json();
+      const sugestoes = json.sugestoes || [];
+      const total = json.total || 0;
+      const areas = {};
+      sugestoes.forEach(s => { if(s.area) areas[s.area] = (areas[s.area]||0)+1; });
+      const anonCount = sugestoes.filter(s=>!s.nome||s.nome.trim()===''||s.nome==='Anônimo').length;
+      const today = new Date().toLocaleDateString('pt-BR');
+      const hojeCount = sugestoes.filter(s => {
+        try { return new Date(s.data).toLocaleDateString('pt-BR') === today; } catch(e) { return false; }
+      }).length;
+
+      // Render charts
+      document.getElementById('r-total').textContent = total;
+      document.getElementById('r-hoje').textContent = hojeCount;
+      document.getElementById('r-anon').textContent = anonCount;
+      document.getElementById('r-areas').textContent = Object.keys(areas).length;
+
+      const maxVal = Math.max(...Object.values(areas), 1);
+      const colors = ['#c8a96e','#e0b87a','#d4af70','#b89550','#a07840','#8a6030','#6a4820'];
+      document.getElementById('report-bar-chart').innerHTML = Object.entries(areas)
+        .sort((a,b)=>b[1]-a[1])
+        .map(([area, count], i) => `
+          <div class="bar-row">
+            <div class="bar-label">${area}</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:${Math.round(count/maxVal*100)}%;background:${colors[i%colors.length]}">
+                <span class="bar-val">${count}</span>
+              </div>
+            </div>
+          </div>`).join('') || '<div style="color:var(--silver);font-size:.8rem;">Nenhum dado ainda.</div>';
+
+      drawReportDonut(anonCount, total - anonCount);
+      chartsSection.style.display = 'block';
+
+      // Build data summary for AI — usa todos os campos disponíveis
+      const areaLines = Object.entries(areas).map(([a,n])=>`${a}: ${n}`).join(', ');
+      const sugSample = sugestoes.map((s,i)=>`${i+1}. [${s.area||'Geral'}]
+   - Problema: ${s.problema||s.sugestao||'não informado'}
+   - Sugestão: ${s.sugestao||'não informado'}
+   - Impacto esperado: ${s.impacto||'não informado'}
+   - Colaborador: ${s.nome||'Anônimo'}`).join('\n');
+      const date = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+
+      btn.textContent = '🤖 Analisando com IA...';
+      out.textContent = 'Conectando ao Gemini via Apps Script...';
+
+      let aiText = null;
+
+      // Chama o Apps Script que por sua vez chama o Gemini
+      try {
+        const aiRes = await fetch(SHEETS_API + '?action=ai');
+        const aiJson = await aiRes.json();
+        if (aiJson.aiReport) {
+          aiText = aiJson.aiReport;
+        } else if (aiJson.erro) {
+          console.error('Erro do Apps Script:', aiJson.erro);
+        }
+      } catch(err) {
+        console.error('Erro ao chamar Apps Script:', err);
+      }
+
+      // Fallback: relatório estruturado gerado localmente
+      if (!aiText) {
+        const topAreas = Object.entries(areas).sort((a,b)=>b[1]-a[1]);
+        const anonPct = total > 0 ? Math.round(anonCount/total*100) : 0;
+
+        // Monta linhas descritivas por departamento
+        const depLines = topAreas.map(([area, qtd]) => {
+          const sugsDept = sugestoes.filter(s => s.area === area);
+          const textos = sugsDept.map(s => s.sugestao).filter(Boolean);
+          const descritivo = textos.length > 0
+            ? textos.map((t, i) => `     ${i+1}. ${t}`).join('\n')
+            : `     Nenhuma descrição registrada.`;
+          return `  📌 ${area.toUpperCase()} — ${qtd} sugestão(ões)\n${descritivo}`;
+        }).join('\n\n');
+
+        // Como resolver: análise real por sugestão
+        const comoResolver = topAreas.map(([area]) => {
+          const textosDept = sugestoes.filter(s=>s.area===area).map(s=>s.sugestao).filter(Boolean);
+          if (textosDept.length === 0) return `  → ${area}: Incentivar participação do departamento.`;
+
+          const acoes = textosDept.map((sug, i) => {
+            const s = sug.toLowerCase();
+            let acao = '';
+            if (s.includes('treinamento') || s.includes('capacitação') || s.includes('instrução') || s.includes('instruções'))
+              acao = 'Mapear necessidade de treinamento e montar cronograma com RH.';
+            else if (s.includes('atendimento') || s.includes('cliente') || s.includes('prazo') || s.includes('agilidade') || s.includes('rápid'))
+              acao = 'Revisar fluxo de atendimento e definir meta de tempo de resposta.';
+            else if (s.includes('processo') || s.includes('procedimento') || s.includes('padrão') || s.includes('padroniz'))
+              acao = 'Documentar processo atual e criar ou atualizar procedimento operacional.';
+            else if (s.includes('comunicação') || s.includes('informação') || s.includes('alinhamento'))
+              acao = 'Criar rotina de alinhamento entre equipes e melhorar canais internos.';
+            else if (s.includes('ferramenta') || s.includes('sistema') || s.includes('software') || s.includes('equipamento'))
+              acao = 'Avaliar aquisição ou melhoria de ferramentas/sistemas necessários.';
+            else if (s.includes('motivação') || s.includes('reconhecimento') || s.includes('valorização') || s.includes('equipe'))
+              acao = 'Implementar programa de reconhecimento e engajamento da equipe.';
+            else if (s.includes('estrutura') || s.includes('espaço') || s.includes('ambiente') || s.includes('instalação'))
+              acao = 'Avaliar melhorias estruturais e de ambiente de trabalho.';
+            else
+              acao = 'Reunir equipe do departamento para discutir e planejar ação de melhoria.';
+            return `     ${i+1}. "${sug.slice(0,55)}${sug.length>55?'...':''}" → ${acao}`;
+          }).join('\n');
+
+          return `  📋 ${area.toUpperCase()}\n${acoes}`;
+        }).join('\n\n');
+
+        aiText = [
+          `══════════════════════════════════════════════`,
+          `  RELATÓRIO — CANAL DE SUGESTÕES MCI`,
+          `  Mercedes-Benz · De Nigris`,
+          `  Para: Diretor Afabio Freitas`,
+          `  Data: ${date}`,
+          `══════════════════════════════════════════════`,
+          ``,
+          `RESUMO GERAL`,
+          `──────────────────────────────────────────────`,
+          `  Total de sugestões recebidas : ${total}`,
+          `  Enviadas anonimamente        : ${anonCount} (${anonPct}%)`,
+          `  Identificadas                : ${total - anonCount} (${100-anonPct}%)`,
+          `  Departamentos participantes  : ${Object.keys(areas).length}`,
+          `  Sugestões recebidas hoje     : ${hojeCount}`,
+          ``,
+          `SUGESTÕES POR DEPARTAMENTO`,
+          `──────────────────────────────────────────────`,
+          total > 0 ? depLines : `  Nenhuma sugestão registrada ainda.`,
+          ``,
+          `COMO RESOLVER`,
+          `──────────────────────────────────────────────`,
+          total > 0 ? comoResolver : `  Aguardar recebimento de sugestões para análise.`,
+          ``,
+          `══════════════════════════════════════════════`,
+          `  Coord. Qualidade: Jefferson Alves  |  ${date}`,
+          `══════════════════════════════════════════════`
+        ].join('\n');
+      }
+
+      aiLabel.style.display = 'block';
+      out.textContent = aiText;
+
+    } catch(e) {
+      out.textContent = '❌ Erro ao conectar.\n\n' + e.message;
+    }
+    btn.textContent = '⚡ GERAR RELATÓRIO COM IA'; btn.disabled = false;
+  }
+
+  function drawReportDonut(anon, identified) {
+    const canvas = document.getElementById('reportDonutChart');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const total = anon + identified;
+    ctx.clearRect(0,0,180,180);
+    if(total === 0) {
+      ctx.fillStyle = '#2a2a2a';
+      ctx.beginPath(); ctx.arc(90,90,70,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#1a1a1a';
+      ctx.beginPath(); ctx.arc(90,90,45,0,Math.PI*2); ctx.fill();
+      return;
+    }
+    const data = [
+      { val: anon, color: '#c8a96e', label: 'Anônimas' },
+      { val: identified, color: '#4a7a9b', label: 'Identificadas' }
+    ];
+    let startAngle = -Math.PI/2;
+    data.forEach(d => {
+      const slice = (d.val/total) * Math.PI * 2;
+      ctx.beginPath(); ctx.moveTo(90,90);
+      ctx.arc(90,90,70,startAngle,startAngle+slice);
+      ctx.closePath(); ctx.fillStyle = d.color; ctx.fill();
+      startAngle += slice;
+    });
+    ctx.beginPath(); ctx.arc(90,90,45,0,Math.PI*2);
+    ctx.fillStyle = '#1a1a1a'; ctx.fill();
+    ctx.fillStyle = '#e8e4dc';
+    ctx.font = 'bold 22px Bebas Neue, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(total, 90, 85);
+    ctx.font = '10px DM Sans, sans-serif';
+    ctx.fillStyle = '#8a8a8a';
+    ctx.fillText('total', 90, 102);
+    document.getElementById('report-pie-legend').innerHTML = data.map(d =>
+      `<div class="pie-item"><div class="pie-dot" style="background:${d.color}"></div><div class="pie-text">${d.label}: ${d.val}</div></div>`
+    ).join('');
+  }
+
+  function copyReport() {
+    const text = document.getElementById('report-out').textContent;
+    if(text.includes('Clique em')) return;
+    navigator.clipboard.writeText(text).then(()=>{
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = '✅ Copiado!';
+      setTimeout(()=>btn.textContent='📋 Copiar para WhatsApp / Email', 2500);
+    });
+  }
+
+  // ── AUTH ──
+  function handleCoordBtn() {
+    if(isCoord) { logout(); return; }
+    document.getElementById('login-overlay').classList.add('show');
+    setTimeout(()=>document.getElementById('login-input').focus(), 100);
+  }
+
+  function doLogin() {
+    const val = document.getElementById('login-input').value;
+    if(val === SENHA) {
+      isCoord = true;
+      document.getElementById('login-overlay').classList.remove('show');
+      document.getElementById('login-input').value = '';
+      document.getElementById('login-error').style.display = 'none';
+      document.getElementById('coord-btn').textContent = '✅ Coordenador';
+      document.getElementById('coord-btn').classList.add('active');
+      document.getElementById('nav-dash').classList.add('visible');
+      document.getElementById('nav-report').classList.add('visible');
+      showPage('dash', document.getElementById('nav-dash'));
+      loadDashData();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('login-input').value = '';
+      document.getElementById('login-input').focus();
+    }
+  }
+
+  function closeLogin() {
+    document.getElementById('login-overlay').classList.remove('show');
+    document.getElementById('login-input').value = '';
+    document.getElementById('login-error').style.display = 'none';
+  }
+
+  function logout() {
+    isCoord = false;
+    document.getElementById('coord-btn').textContent = '🔐 Coordenador';
+    document.getElementById('coord-btn').classList.remove('active');
+    document.getElementById('nav-dash').classList.remove('visible');
+    document.getElementById('nav-report').classList.remove('visible');
+    showPage('form', document.getElementById('nav-form'));
+  }
+
+  function showPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    document.getElementById('page-'+id).classList.add('active');
+    if(btn) btn.classList.add('active');
+  }
+
+  // ── INIT ──
+  loadCounter();
+  setInterval(loadCounter, 30000); // refresh counter every 30s
+</script>
+</body>
+</html>
